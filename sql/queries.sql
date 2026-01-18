@@ -9,15 +9,53 @@
 
 -- ============================================================================
 -- P2: Query to list all shows on a given date at a given theatre 
---     along with their respective show timings (UI-Optimized)
+--     along with their respective show timings
 -- ============================================================================
 
 -- This query fulfills the P2 requirement:
 -- "Write a query to list down all the shows on a given date at a given theatre 
 --  along with their respective show timings."
--- 
--- Returns results grouped by movie with all show timings aggregated together,
--- matching the BookMyShow UI where multiple show times appear under each movie.
+--
+-- TWO APPROACHES PROVIDED BELOW:
+-- 1. VERSION 1 (RAW DATA FORMAT) - Returns one row per show
+--    Use for: Data APIs, reports, analysis tools
+-- 2. VERSION 2 (UI-OPTIMIZED FORMAT) - Groups shows by movie
+--    Use for: Mobile/web UI rendering, user-facing applications
+
+-- ============================================================================
+-- P2 VERSION 1: RAW DATA FORMAT (One Row Per Show)
+-- ============================================================================
+-- Returns individual show listings with all attributes
+-- Best for: APIs, databases, general purpose data retrieval
+-- Format: Each show appears as a separate row with complete details
+
+SELECT 
+  m.movie_name,
+  lang.language_name,
+  fmt.format_name,
+  sc.screen_name,
+  TIME_FORMAT(s.show_time, '%h:%i %p') AS 'Show Time',
+  t.theatre_name,
+  sd.show_date,
+  m.duration_minutes
+FROM ShowDetails s
+JOIN Movie m ON s.movie_id = m.movie_id
+JOIN Language lang ON m.language_id = lang.language_id
+JOIN Format fmt ON m.format_id = fmt.format_id
+JOIN Screen sc ON s.screen_id = sc.screen_id
+JOIN Theatre t ON sc.theatre_id = t.theatre_id
+JOIN ShowDate sd ON s.show_date_id = sd.show_date_id
+WHERE t.theatre_name = 'PVR Phoenix'
+  AND sd.show_date = '2026-01-20'
+ORDER BY m.movie_name, s.show_time ASC;
+
+-- ============================================================================
+-- P2 VERSION 2: UI-OPTIMIZED FORMAT (Grouped by Movie)
+-- ============================================================================
+-- Returns movies grouped with all show timings aggregated together
+-- Best for: Mobile/web UI, user interfaces, client applications
+-- Format: Matches BookMyShow UI layout - one movie row with multiple timings
+-- Example output: Dunki | 1:20 PM IST, 4:00 PM IST, 7:00 PM IST | Hindi - 2D
 
 SELECT 
   m.movie_name AS 'Movie Name',
